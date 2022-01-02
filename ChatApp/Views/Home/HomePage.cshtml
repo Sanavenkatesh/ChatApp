@@ -1,0 +1,106 @@
+﻿@{ 
+    var UsersListToConnect = ViewBag.UsersListToConnect as SelectList;
+}
+<div class="container-fluid main">
+    <div id="loaderClass" class="loader-class hide">
+        <img class="loader" src="~/Content/Images/Fidget-spinner.gif" />
+        <label class="loader-label">Loading...</label>
+    </div>
+    <div class="custom-navbar">
+        <ul class="nav nav-tabs nav-justified">
+            <li class="active">
+                <label id="title" class="title">Chat-Messenger</label>
+                <label class="info" style="white-space: nowrap;">Logged-In as: &nbsp;</label>
+                <label id="nameOfUser" class="name"></label>
+            </li>
+        </ul>
+    </div>
+    <div class="dflex h-91vh">
+        <div class="left-panel">
+            <table class="w-100p" id="custom-table">
+                <tbody id="custom-table-body1"></tbody>
+            </table>
+            <div class="floating-div">
+                <button type="button" title="New Chat" class="btn btn-success floating-button" onclick="startNewChat()">
+                    <i class="fas fa-edit"></i>
+                </button>
+            </div>
+        </div>
+        <div class="right-panel">
+            <div id="custom-card-header" class="card-header hidden" style="height: auto;">
+                <div class="card-content dflex" style="padding: 5px 7px; border-bottom: 1px solid grey; height: auto;">
+                    <div id="img-div" class="img-circle fake-img hidden">
+                        <!-- style="flex: 4%;" -->
+                        <img src="~/assets/chat-avatar.png" class="image" alt="chat-avatar" />
+                    </div>
+                    <div id="cardDetails" class="dflexcol card-details">
+                        <h3 id="currentConvoUserName" class="custom-margin-block custom-header"></h3>
+                        <label id="currentConvoLabel" class="custom-label"></label>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body" style="height: 100%; overflow: auto;">
+                <table class="w-100p">
+                    <tbody id="custom-table-body2"></tbody>
+                </table>
+            </div>
+            <div id="cardFooter" class="card-footer hidden" style="height: 12%;">
+                <div class="container-fluid p-15" style="height: 100%;">
+                    <div class="dflex custom-inputdiv">
+                        <textarea rows="2" id="messageBox" title="Enter Message" placeholder="Type a message" type="text" class="custom-inputtextarea"></textarea>
+                        <button type="button" title="Send Message" class="custom-button"
+                                onclick="sendMessage()">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="modal-exhibit">
+        
+        <!--Bootstrap alert to display any validation errors-->
+        <div id="divError" class="alert alert-danger collapse">
+            <a id="linkClose" href="#" class="close">&times;</a>
+            <div id="divErrorText"></div>
+        </div>
+        <div class="modal fade" tabindex="-1" id="chatConnectionModal"
+             data-keyboard="false" data-backdrop="static">
+            <div class="modal-dialog modal-sm">
+                <div class="modal-content">
+                    <div class="modal-header">                       
+                        <h5 class="modal-title">Enter User Name to Chat with</h5>
+                    </div>
+                    <div class="modal-body">
+                        <label>User Name <label style="color: red;">*</label></label>
+                        @Html.DropDownList("connectToUserName", UsersListToConnect, new { @class = "form-select" })
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" title="Close Connection" class="btn btn-primary pull-left"
+                                onclick="closeModal('chatConnectionModal')">
+                            Cancel
+                        </button>
+                        <button type="button" title="Connect" class="btn btn-success"
+                                onclick="connectUser()">
+                            Connect
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    var logedInUserName = '@Session["logedInUserName"]';
+    var logedInUserId = '@Session["logedInUserId"]';
+    $('#nameOfUser').text(logedInUserName);
+    $('#title').css('margin-left', '125px');    
+    $("#loaderClass").addClass('hide');
+
+    $(document).ready(() => {
+        getAllUserChatAccounts();
+        initiateSignalR();
+        addEventListeners();
+    });
+</script>
+

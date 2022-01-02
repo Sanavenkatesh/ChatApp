@@ -1,0 +1,18 @@
+﻿@{
+    ViewBag.Title = "Login";
+    var userList = ViewBag.UsersList as SelectList;
+}
+@using (Html.BeginForm())
+{
+    <div class="container">
+        <h5>Login</h5>
+        @Html.DropDownList("userId", userList, new { @class = "form-select" })
+        <button type="submit" title="Sign In" class="btn btn-success">
+            Sign In
+        </button>
+    </div>
+
+}
+
+
+
