@@ -17,13 +17,23 @@
     </div>
     <div class="dflex h-91vh">
         <div class="left-panel">
-            <table class="w-100p" id="custom-table">
-                <tbody id="custom-table-body1"></tbody>
-            </table>
-            <div class="floating-div">
-                <button type="button" title="New Chat" class="btn btn-success floating-button" onclick="startNewChat()">
-                    <i class="fas fa-edit"></i>
-                </button>
+            <div class="separation-Div">
+                <table class="w-100p" id="custom-table">
+                    <tbody id="custom-table-body1"></tbody>
+                </table>
+                <div class="floating-div">
+                    <button type="button" title="New Chat" class="btn btn-success floating-button" onclick="startNewChat()">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button type="button" title="New Group" class="btn btn-success floating-button1" onclick="startNewGroup()">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="separation-Div">
+                <table class="w-100p" id="custom-group-table">
+                    <tbody id="custom-group-table-body"></tbody>
+                </table>              
             </div>
         </div>
         <div class="right-panel">
@@ -39,7 +49,7 @@
                     </div>
                 </div>
             </div>
-            <div class="card-body" style="height: 100%; overflow: auto;">
+            <div class="card-body" id="message-div" style="height: 100%; overflow: auto;">
                 <table class="w-100p">
                     <tbody id="custom-table-body2"></tbody>
                 </table>
@@ -48,9 +58,21 @@
                 <div class="container-fluid p-15" style="height: 100%;">
                     <div class="dflex custom-inputdiv">
                         <textarea rows="2" id="messageBox" title="Enter Message" placeholder="Type a message" type="text" class="custom-inputtextarea"></textarea>
-                        <button type="button" title="Send Message" class="custom-button"
+                        <button type="button" id="send-msg-btn" title="Send Message" class="custom-button"
                                 onclick="sendMessage()">
                             <i class="fas fa-paper-plane"></i>
+                        </button>
+                        <button type="button" title="Send Message" class="custom-button group-msg-btn"
+                                onclick="sendGroupMessage()">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                        <button type="button" title="Send Message" class="custom-button group-msg-btn"
+                                onclick="openAddGroupModel()">
+                            <i class="fa fa-user-plus"></i>
+                        </button>
+                        <button type="button" title="Leave Group" class="custom-button group-msg-btn"
+                                onclick="removeUserFromGroup()">
+                            <i class="fas fa-trash-alt"></i>
                         </button>
                     </div>
                 </div>
@@ -58,7 +80,7 @@
         </div>
     </div>
     <div id="modal-exhibit">
-        
+
         <!--Bootstrap alert to display any validation errors-->
         <div id="divError" class="alert alert-danger collapse">
             <a id="linkClose" href="#" class="close">&times;</a>
@@ -68,7 +90,7 @@
              data-keyboard="false" data-backdrop="static">
             <div class="modal-dialog modal-sm">
                 <div class="modal-content">
-                    <div class="modal-header">                       
+                    <div class="modal-header">
                         <h5 class="modal-title">Enter User Name to Chat with</h5>
                     </div>
                     <div class="modal-body">
@@ -88,6 +110,56 @@
                 </div>
             </div>
         </div>
+
+        <div class="modal fade" tabindex="-1" id="addToGroupModal"
+             data-keyboard="false" data-backdrop="static">
+            <div class="modal-dialog modal-sm">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Select User Name to add</h5>
+                    </div>
+                    <div class="modal-body">
+                        <label>User Name <label style="color: red;">*</label></label>
+                        @Html.DropDownList("userNameForGroup", UsersListToConnect, new { @class = "form-select" })
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" title="Close Connection" class="btn btn-primary pull-left"
+                                onclick="closeModal('addToGroupModal')">
+                            Cancel
+                        </button>
+                        <button type="button" title="Connect" class="btn btn-success"
+                                onclick="addUserToGroup()">
+                            Add
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" tabindex="-1" id="groupConnectionModal"
+             data-keyboard="false" data-backdrop="static">
+            <div class="modal-dialog modal-sm">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Add Group</h5>
+                    </div>
+                    <div class="modal-body">
+                        <label>Group Name <label style="color: red;">*</label></label>
+                        @Html.Editor("groupName", "", new { @class = "form-control" })
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" title="Close Connection" class="btn btn-primary pull-left"
+                                onclick="closeModal('groupConnectionModal')">
+                            Cancel
+                        </button>
+                        <button type="button" title="Connect" class="btn btn-success"
+                                onclick="addGroup()">
+                            Add Group
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 <script>
@@ -99,6 +171,7 @@
 
     $(document).ready(() => {
         getAllUserChatAccounts();
+        getAllUserGroupAccounts();
         initiateSignalR();
         addEventListeners();
     });

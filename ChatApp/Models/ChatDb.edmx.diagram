@@ -4,10 +4,12 @@
   <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
     <!-- Diagram content (shape and connector positions) -->
     <edmx:Diagrams>
-      <Diagram DiagramId="d00ab0566a864aff97ed7ffdaac5a542" Name="Diagram1">
-        <EntityTypeShape EntityType="ChatDbModel.Message" Width="1.5" PointX="0.75" PointY="0.75" />
-        <EntityTypeShape EntityType="ChatDbModel.UserChatRoom" Width="1.5" PointX="2.75" PointY="0.75" />
-        <EntityTypeShape EntityType="ChatDbModel.User" Width="1.5" PointX="0.75" PointY="3.75" />
+      <Diagram DiagramId="70edec1cfedf48a4aac515fe58557fd8" Name="Diagram1">
+        <EntityTypeShape EntityType="ChatDbModel.GroupChatRoom" Width="1.5" PointX="0.75" PointY="0.75" />
+        <EntityTypeShape EntityType="ChatDbModel.Group" Width="1.5" PointX="2.75" PointY="0.75" />
+        <EntityTypeShape EntityType="ChatDbModel.Message" Width="1.5" PointX="0.75" PointY="3.75" />
+        <EntityTypeShape EntityType="ChatDbModel.UserChatRoom" Width="1.5" PointX="2.75" PointY="3.75" />
+        <EntityTypeShape EntityType="ChatDbModel.User" Width="1.5" PointX="4.75" PointY="0.75" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

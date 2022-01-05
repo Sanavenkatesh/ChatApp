@@ -1,0 +1,36 @@
+CREATE TABLE GroupChatRooms (
+    Id int IDENTITY(1,1) NOT NULL PRIMARY KEY,
+	GroupId int not null,
+	UserId int not null,
+    GroupName varchar(100),
+	LastModified DateTime
+);
+ CREATE TABLE Groups (
+    Id int IDENTITY(1,1) NOT NULL PRIMARY KEY,	
+    GroupName varchar(100),
+	CreatedBy int not null,	
+	LastModified DateTime
+);
+
+CREATE TABLE Messages (
+    Id int IDENTITY(1,1) NOT NULL PRIMARY KEY,
+	SenderId int not null,
+	ReceiverId int not null,
+    TextMessage varchar(max),
+	SentOn DateTime,
+GroupId int
+
+);
+
+  CREATE TABLE Users (
+    Id int IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    UserName varchar(25),
+    ConnectionId varchar(50)    
+);
+CREATE TABLE UserChatRooms (
+    Id int IDENTITY(1,1) NOT NULL PRIMARY KEY,
+	ParentUserId int not null,
+	UserId int not null,
+    UserName varchar(25),
+	LastModified DateTime
+);

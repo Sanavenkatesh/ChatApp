@@ -148,6 +148,7 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Helpers\SessionManager.cs" />
     <Compile Include="Hubs\CommonBridge.cs" />
     <Compile Include="Hubs\Startup.cs" />
     <Compile Include="Models\ChatDb.Context.cs">
@@ -164,6 +165,12 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>ChatDb.edmx</DependentUpon>
+    </Compile>
+    <Compile Include="Models\Group.cs">
+      <DependentUpon>ChatDb.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\GroupChatRoom.cs">
+      <DependentUpon>ChatDb.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\Message.cs">
       <DependentUpon>ChatDb.tt</DependentUpon>
@@ -196,6 +203,7 @@
     <Content Include="Content\bootstrap.rtl.min.css" />
     <Content Include="Content\Custom Styles\HomePage.css" />
     <Content Include="Content\Images\Fidget-spinner.gif" />
+    <Content Include="DbQuery\chat qrys.txt" />
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
     <Content Include="Content\Site.css" />

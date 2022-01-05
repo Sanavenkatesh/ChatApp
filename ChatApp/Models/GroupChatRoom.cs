@@ -12,14 +12,12 @@ namespace ChatApp.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class Message
+    public partial class GroupChatRoom
     {
         public int Id { get; set; }
-        public int SenderId { get; set; }
-        public int ReceiverId { get; set; }
-        public string TextMessage { get; set; }
-        public Nullable<System.DateTime> SentOn { get; set; }
-        public Nullable<int> GroupId { get; set; }
-        public Nullable<int> RoomId { get; set; }
+        public int GroupId { get; set; }
+        public int UserId { get; set; }
+        public string GroupName { get; set; }
+        public Nullable<System.DateTime> LastModified { get; set; }
     }
 }

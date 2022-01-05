@@ -5,6 +5,25 @@
     <!-- SSDL content -->
     <edmx:StorageModels>
     <Schema Namespace="ChatDbModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <EntityType Name="GroupChatRooms">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="GroupId" Type="int" Nullable="false" />
+          <Property Name="UserId" Type="int" Nullable="false" />
+          <Property Name="GroupName" Type="varchar" MaxLength="100" />
+          <Property Name="LastModified" Type="datetime" />
+        </EntityType>
+        <EntityType Name="Groups">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="GroupName" Type="varchar" MaxLength="100" />
+          <Property Name="CreatedBy" Type="int" Nullable="false" />
+          <Property Name="LastModified" Type="datetime" />
+        </EntityType>
         <EntityType Name="Messages">
           <Key>
             <PropertyRef Name="Id" />
@@ -14,6 +33,8 @@
           <Property Name="ReceiverId" Type="int" Nullable="false" />
           <Property Name="TextMessage" Type="varchar" MaxLength="25" />
           <Property Name="SentOn" Type="datetime" />
+          <Property Name="GroupId" Type="int" />
+          <Property Name="RoomId" Type="int" />
         </EntityType>
         <EntityType Name="UserChatRooms">
           <Key>
@@ -31,8 +52,11 @@
           </Key>
           <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="UserName" Type="varchar" MaxLength="25" />
+          <Property Name="ConnectionId" Type="varchar" MaxLength="50" />
         </EntityType>
         <EntityContainer Name="ChatDbModelStoreContainer">
+          <EntitySet Name="GroupChatRooms" EntityType="Self.GroupChatRooms" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Groups" EntityType="Self.Groups" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Messages" EntityType="Self.Messages" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="UserChatRooms" EntityType="Self.UserChatRooms" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Users" EntityType="Self.Users" Schema="dbo" store:Type="Tables" />
@@ -42,10 +66,31 @@
     <edmx:ConceptualModels>
       <Schema Namespace="ChatDbModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
         <EntityContainer Name="ChatDbEntities" annotation:LazyLoadingEnabled="true">
+          <EntitySet Name="GroupChatRooms" EntityType="ChatDbModel.GroupChatRoom" />
+          <EntitySet Name="Groups" EntityType="ChatDbModel.Group" />
           <EntitySet Name="Messages" EntityType="ChatDbModel.Message" />
           <EntitySet Name="UserChatRooms" EntityType="ChatDbModel.UserChatRoom" />
           <EntitySet Name="Users" EntityType="ChatDbModel.User" />
         </EntityContainer>
+        <EntityType Name="GroupChatRoom">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="GroupId" Type="Int32" Nullable="false" />
+          <Property Name="UserId" Type="Int32" Nullable="false" />
+          <Property Name="GroupName" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="LastModified" Type="DateTime" Precision="3" />
+        </EntityType>
+        <EntityType Name="Group">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="GroupName" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="CreatedBy" Type="Int32" Nullable="false" />
+          <Property Name="LastModified" Type="DateTime" Precision="3" />
+        </EntityType>
         <EntityType Name="Message">
           <Key>
             <PropertyRef Name="Id" />
@@ -55,6 +100,8 @@
           <Property Name="ReceiverId" Type="Int32" Nullable="false" />
           <Property Name="TextMessage" Type="String" MaxLength="25" FixedLength="false" Unicode="false" />
           <Property Name="SentOn" Type="DateTime" Precision="3" />
+          <Property Name="GroupId" Type="Int32" />
+          <Property Name="RoomId" Type="Int32" />
         </EntityType>
         <EntityType Name="UserChatRoom">
           <Key>
@@ -72,6 +119,7 @@
           </Key>
           <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="UserName" Type="String" MaxLength="25" FixedLength="false" Unicode="false" />
+          <Property Name="ConnectionId" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
         </EntityType>
       </Schema>
     </edmx:ConceptualModels>
@@ -79,9 +127,32 @@
     <edmx:Mappings>
       <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
         <EntityContainerMapping StorageEntityContainer="ChatDbModelStoreContainer" CdmEntityContainer="ChatDbEntities">
+          <EntitySetMapping Name="GroupChatRooms">
+            <EntityTypeMapping TypeName="ChatDbModel.GroupChatRoom">
+              <MappingFragment StoreEntitySet="GroupChatRooms">
+                <ScalarProperty Name="LastModified" ColumnName="LastModified" />
+                <ScalarProperty Name="GroupName" ColumnName="GroupName" />
+                <ScalarProperty Name="UserId" ColumnName="UserId" />
+                <ScalarProperty Name="GroupId" ColumnName="GroupId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Groups">
+            <EntityTypeMapping TypeName="ChatDbModel.Group">
+              <MappingFragment StoreEntitySet="Groups">
+                <ScalarProperty Name="LastModified" ColumnName="LastModified" />
+                <ScalarProperty Name="CreatedBy" ColumnName="CreatedBy" />
+                <ScalarProperty Name="GroupName" ColumnName="GroupName" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
           <EntitySetMapping Name="Messages">
             <EntityTypeMapping TypeName="ChatDbModel.Message">
               <MappingFragment StoreEntitySet="Messages">
+                <ScalarProperty Name="RoomId" ColumnName="RoomId" />
+                <ScalarProperty Name="GroupId" ColumnName="GroupId" />
                 <ScalarProperty Name="SentOn" ColumnName="SentOn" />
                 <ScalarProperty Name="TextMessage" ColumnName="TextMessage" />
                 <ScalarProperty Name="ReceiverId" ColumnName="ReceiverId" />
@@ -104,6 +175,7 @@
           <EntitySetMapping Name="Users">
             <EntityTypeMapping TypeName="ChatDbModel.User">
               <MappingFragment StoreEntitySet="Users">
+                <ScalarProperty Name="ConnectionId" ColumnName="ConnectionId" />
                 <ScalarProperty Name="UserName" ColumnName="UserName" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>

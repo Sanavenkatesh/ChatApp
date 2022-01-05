@@ -92,6 +92,7 @@
     padding: 4px;
     display: flex;
     width: 100%;
+    flex-direction: column;
 }
 
 .right-panel {
@@ -114,9 +115,6 @@
 .card-body {
     width: 100%;
     padding: 2px;
-    flex-wrap: nowrap;
-    display: flex;
-    align-items: flex-end;
 }
 
 .fake-img {
@@ -297,7 +295,7 @@ input:focus-visible {
 
 .floating-div {
     top: 90%;
-    left: 20%;
+    left: 15%;
     position: absolute;
     cursor: pointer !important;
 }
