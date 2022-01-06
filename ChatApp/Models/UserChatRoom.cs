@@ -19,5 +19,6 @@ namespace ChatApp.Models
         public int UserId { get; set; }
         public string UserName { get; set; }
         public Nullable<System.DateTime> LastModified { get; set; }
+        public Nullable<int> UnreadMessagesCount { get; set; }
     }
 }

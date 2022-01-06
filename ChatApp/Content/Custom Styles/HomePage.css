@@ -157,10 +157,9 @@
 .custom-inputtextarea {
     border-radius: 15px;
     border: 0px;
-    flex: 90%;
+    flex: 80%;
     padding: 13px 14px 10px 14px;
     border: 1px solid #292828;
-    
     font-size: 15px;
     height: 80%;
     resize: unset;
@@ -589,4 +588,9 @@ span.message-text {
 
 .affix {
     position: fixed;
+}
+.header-unread-count {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
 }

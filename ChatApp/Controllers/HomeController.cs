@@ -91,7 +91,9 @@ namespace Chat_Messenger.Controllers
                 {
                     GroupId = data.Id,
                     UserId = data.CreatedBy,
-                    GroupName = groupName   
+                    GroupName = groupName,
+                    LastModified = DateTime.Now,
+                    UnreadMessagesCount = 0
                 });
                 db.SaveChanges();
             }            
@@ -99,31 +101,31 @@ namespace Chat_Messenger.Controllers
             return Json(true);
         }
 
-        public JsonResult GetChatRooms()
+        public ActionResult GetChatRooms()
         {
             try
             {
                 var chatRoomsData = db.UserChatRooms.OrderByDescending(x=>x.LastModified).ToList().Where(x => x.ParentUserId == (int)Session["logedInUserId"]);
-                return Json(chatRoomsData, JsonRequestBehavior.AllowGet);
+                return PartialView("_ChatRooms", chatRoomsData);
             }
             catch (Exception)
             {
-                return Json(new List<UserChatRoom> { }, JsonRequestBehavior.AllowGet);
+                return PartialView("_ChatRooms", new List<UserChatRoom>());
                 throw;
             }
             
         }
         
-        public JsonResult GetGroupRooms()
+        public ActionResult GetGroupRooms()
         {
             try
             {
                 var chatRoomsData = db.GroupChatRooms.ToList().Where(x => x.UserId == (int)Session["logedInUserId"]);
-                return Json(chatRoomsData, JsonRequestBehavior.AllowGet);
+                return PartialView("_GroupRooms", chatRoomsData);
             }
             catch (Exception)
             {
-                return Json(new List<GroupChatRoom> { }, JsonRequestBehavior.AllowGet);
+                return PartialView("_GroupRooms", new List<GroupChatRoom>());
                 throw;
             }
             
@@ -133,6 +135,11 @@ namespace Chat_Messenger.Controllers
         {
             try
             {
+                var chatRoomData = db.UserChatRooms.ToList().Where(x => x.ParentUserId == (int)Session["logedInUserId"] && x.UserId == receiverId).FirstOrDefault();
+                
+                chatRoomData.UnreadMessagesCount = 0;
+                db.SaveChanges();
+
                 var chatData = db.Messages.OrderBy(x=>x.SentOn).ToList().Where(x => (x.SenderId == (int)Session["logedInUserId"] || x.ReceiverId == (int)Session["logedInUserId"]) && (x.SenderId == receiverId || x.ReceiverId == receiverId));
                 return Json(chatData, JsonRequestBehavior.AllowGet);
             }
@@ -148,6 +155,10 @@ namespace Chat_Messenger.Controllers
         {
             try
             {
+                var grupRoomData = db.GroupChatRooms.ToList().Where(x => x.UserId == (int)Session["logedInUserId"] && x.GroupId == groupId).FirstOrDefault();                
+                grupRoomData.UnreadMessagesCount = 0;
+                db.SaveChanges();
+
                 var chatData = db.Messages.OrderBy(x=>x.SentOn).ToList().Where(x => x.GroupId == groupId);
                 return Json(chatData, JsonRequestBehavior.AllowGet);
             }

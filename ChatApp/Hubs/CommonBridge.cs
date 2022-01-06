@@ -15,6 +15,7 @@ namespace Chat_Messenger.Hubs
             {
                 var user = db.Users.Find(SessionManager.GetUserId());
                 user.ConnectionId = Context.ConnectionId;
+                user.Connected = true;
                 db.SaveChanges();
 
 
@@ -26,6 +27,17 @@ namespace Chat_Messenger.Hubs
 
             }
             return base.OnConnected();
+        }
+
+        public override Task OnDisconnected(bool stopCalled)
+        {
+            using (var db = new ChatDbEntities())
+            {
+                var user = db.Users.Find(SessionManager.GetUserId());
+                user.Connected = false;
+                db.SaveChanges();
+            }
+            return base.OnDisconnected(stopCalled);
         }
 
         public void sendMessageTo(string senderUserName, string receiverUserName, string message,string senderId, string receiverId)
@@ -41,7 +53,8 @@ namespace Chat_Messenger.Hubs
                 });
                 db.SaveChanges();
 
-                connectionId = db.Users.Find(int.Parse(receiverId)).ConnectionId;
+                var receiverData = db.Users.Find(int.Parse(receiverId));
+                connectionId = receiverData.ConnectionId;
 
                 var userData = db.Users.Find(int.Parse(senderId));
                 var isOldChat = db.UserChatRooms.ToList().Where(x => x.ParentUserId == int.Parse(receiverId) && x.UserId == userData.Id).FirstOrDefault();
@@ -52,13 +65,15 @@ namespace Chat_Messenger.Hubs
                         ParentUserId = int.Parse(receiverId),
                         UserId = userData.Id,
                         UserName = userData.UserName,
-                        LastModified = DateTime.Now
+                        LastModified = DateTime.Now,
+                        UnreadMessagesCount = 1
                     });
                     db.SaveChanges();                    
                 }
                 else
                 {
                     isOldChat.LastModified = DateTime.Now;
+                    isOldChat.UnreadMessagesCount = isOldChat.UnreadMessagesCount + 1;
                     db.SaveChanges();
                 }
 
@@ -81,6 +96,14 @@ namespace Chat_Messenger.Hubs
                     GroupId = int.Parse(groupId)
                 });
                 db.SaveChanges();
+
+                var gropuData = db.GroupChatRooms.ToList().Where(x => x.GroupId == int.Parse(groupId) && x.UserId != int.Parse(senderId));
+                foreach (var item in gropuData)
+                {
+                    item.UnreadMessagesCount = item.UnreadMessagesCount == null ? 0 : item.UnreadMessagesCount + 1;
+                    db.SaveChanges();
+                }
+
             }
 
             Clients.Group(groupName, Context.ConnectionId).groupMessageReceived(senderUserName, message, senderId, groupName, groupId);
@@ -99,7 +122,9 @@ namespace Chat_Messenger.Hubs
                     {
                         GroupId = int.Parse(groupId),
                         UserId = int.Parse(newUserId),
-                        GroupName = groupName
+                        GroupName = groupName,
+                        LastModified = DateTime.Now,
+                        UnreadMessagesCount = 0
                     });
                     db.SaveChanges();
                 }

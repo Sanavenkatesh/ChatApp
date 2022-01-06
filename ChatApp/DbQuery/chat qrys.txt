@@ -34,3 +34,12 @@ CREATE TABLE UserChatRooms (
     UserName varchar(25),
 	LastModified DateTime
 );
+
+alter table Users
+  add Connected bit;
+
+  alter table UserChatRooms
+  add UnreadMessagesCount int;
+
+  alter table GroupChatRooms
+  add UnreadMessagesCount int;

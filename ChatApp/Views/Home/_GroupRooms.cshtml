@@ -1,0 +1,26 @@
+﻿@model IEnumerable<ChatApp.Models.GroupChatRoom>
+@{
+    var count = 0;
+}
+@foreach (var item in Model)
+{   
+    <tr id="clickable-group-row-@count" class="clickable" onclick="openGroupCoversation(this)" data-id="@item.GroupId">
+        <td class="custom-row1">
+            <div class="card-body dflex">
+                <div class="img-circle fake-img">
+                    <img src="/assets/chat-avatar.png" class="image" alt="chat-avatar" />
+                </div>
+                <div class="dflexcol card-details">
+                    <div class="header-unread-count">
+                        <h3 id="@("user"+count)" class="custom-margin-block custom-header group-name">@item.GroupName</h3>
+                        <span class="unread-count">@(item.UnreadMessagesCount > 0 ? item.UnreadMessagesCount.ToString() : "")</span>
+                    </div>                    
+                    <label id="@("label"+count)" class="custom-label"></label>
+                </div>
+            </div>
+        </td>
+    </tr>
+
+    count++;
+}
+

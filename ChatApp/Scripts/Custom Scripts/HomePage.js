@@ -13,29 +13,11 @@ function getAllUserChatAccounts() {
     $("#custom-table-body1").empty();    
     $.ajax({
         url: window.location.origin + '/Home/GetChatRooms',
-        type: 'GET',
-        dataType: 'json',        
+        type: 'GET',                
         success: function (res) {
-            for (i = 0; i < res.length; i++) {
-                $("#custom-table-body1").append(`
-                <tr id="${'clickable-row-' + i}" class="clickable" onclick="openCoversation(this)" data-id=${res[i].UserId}>
-                    <td class="custom-row1">
-                        <div class="card-body dflex">
-                            <div class="img-circle fake-img">
-                                <img src="/assets/chat-avatar.png" class="image" alt="chat-avatar" />
-                            </div>
-                            <div class="dflexcol card-details">
-                                <h3 id="${'user' + i}" class="custom-margin-block custom-header">${res[i].UserName}</h3>
-                                <label id="${'label' + i}" class="custom-label">${''}</label>
-                            </div>
-                        </div>
-                    </td>
-                </tr>`);
-            }
+            $("#custom-table-body1").html(res);
         }
     });
-
-    
 
     if (currentChatId) {
         $(currentChatId).css('background-color', '#ffc107');
@@ -48,28 +30,10 @@ function getAllUserGroupAccounts() {
     $.ajax({
         url: window.location.origin + '/Home/GetGroupRooms',
         type: 'GET',
-        dataType: 'json',        
         success: function (res) {
-            for (i = 0; i < res.length; i++) {
-                $("#custom-group-table-body").append(`
-                <tr id="${'clickable-group-row-' + i}" class="clickable" onclick="openGroupCoversation(this)" data-id=${res[i].GroupId}>
-                    <td class="custom-row1">
-                        <div class="card-body dflex">
-                            <div class="img-circle fake-img">
-                                <img src="/assets/chat-avatar.png" class="image" alt="chat-avatar" />
-                            </div>
-                            <div class="dflexcol card-details">
-                                <h3 id="${'user' + i}" class="custom-margin-block custom-header">${res[i].GroupName}</h3>
-                                <label id="${'label' + i}" class="custom-label">${''}</label>
-                            </div>
-                        </div>
-                    </td>
-                </tr>`);
-            }
+            $("#custom-group-table-body").html(res);          
         }
     });
-
-    
 
     if (currentChatId) {
         $(currentChatId).css('background-color', '#ffc107');
@@ -295,6 +259,10 @@ function addUserToGroup() {
 function removeUserFromGroup() {
     var newUserId = $("#userNameForGroup").val();
     commonBridge.invoke('removeUserFromGroup', logedInUserId, currentGroupName, currentGroupNumber).then(() => {
+        $('#custom-card-header').addClass('hidden');
+        $("#custom-table-body2").empty();
+        $('#cardFooter').addClass('hidden');
+        $('#img-div').addClass('hidden');
     }).catch((err) => console.log(err));
 }
 
@@ -384,13 +352,14 @@ function openAddGroupModel() {
 }
 
 function openCoversation(elem) {
-    currentChatId = '#'+elem.id;
+    currentChatId = '#' + elem.id;
+    var jquerElement = $(elem)
     $('.clickable').css('background-color', '#f44336');
     $(currentChatId).css('background-color', '#ffc107');
-    $('#currentConvoUserName')[0].innerText = elem.children[0].children[0].children[1].children[0].innerText;
+    $('#currentConvoUserName')[0].innerText = jquerElement.find('.chat-user-name').text();
     //$('#currentConvoLabel')[0].innerText = 'online';
-
-    currentChatUserName = elem.children[0].children[0].children[1].children[0].innerText;
+    jquerElement.find('.unread-count').text('');
+    currentChatUserName = jquerElement.find('.chat-user-name').text();
     currentChatUserId = elem.getAttribute('data-id');
 
     $('#custom-card-header').removeClass('hidden');
@@ -406,13 +375,14 @@ function openCoversation(elem) {
 }
 
 function openGroupCoversation(elem) {
-    currentGroupId = '#'+elem.id;
+    currentGroupId = '#' + elem.id;
+    var jquerElement = $(elem)
     $('.clickable').css('background-color', '#f44336');
     $(currentGroupId).css('background-color', '#ffc107');
-    $('#currentConvoUserName')[0].innerText = elem.children[0].children[0].children[1].children[0].innerText;
+    $('#currentConvoUserName')[0].innerText = jquerElement.find('.group-name').text();
     //$('#currentConvoLabel')[0].innerText = 'online';
-
-    currentGroupName = elem.children[0].children[0].children[1].children[0].innerText;
+    jquerElement.find('.unread-count').text('');
+    currentGroupName = jquerElement.find('.group-name').text();
     currentGroupNumber = elem.getAttribute('data-id');
 
     $('#custom-card-header').removeClass('hidden');
