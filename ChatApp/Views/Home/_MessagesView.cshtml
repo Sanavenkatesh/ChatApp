@@ -1,0 +1,64 @@
+﻿@model IEnumerable<ChatApp.Models.Message>
+@{
+
+}
+
+@foreach (var item in Model)
+{
+    var isSender = (int)Session["logedInUserId"] == item.SenderId;
+
+        <tr>
+            <td colspan="2" style="display: flex; justify-content: @(isSender ? "flex-end" : "flex-start");">
+                @if (item.IsAttachment != true)
+                {
+                    <div class="custom-card-body">
+                        <span class="message-text">@item.TextMessage</span>
+                    </div>
+                }
+                else
+                {
+                    <div class="message-div sent-message">
+                        <div class="message-date-main-div">
+                            <div class="message-img-attachment-div">
+                                <img class="attachment-img" src="@item.FilePath" width="170" data-name="@item.FileName" />
+                                <a href="@item.FilePath" class="download-img-btn" download="@item.FileName">
+                                    <img src="/Content/Images/chat/download-img.svg" width="35" />
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+            </td>
+        </tr>
+    
+   @* else
+    {
+        <tr>
+            <td colspan="2" style="display: flex; justify-content: flex-start;">
+                @if (item.IsAttachment != true)
+                {
+                    <div class="custom-card-body">
+                        <span class="message-text">@item.TextMessage</span>
+                    </div>
+                }
+                else
+                {
+                    <div class="message-div sent-message">
+                        <div class="message-date-main-div">
+                            <div class="message-img-attachment-div">
+                                <img class="attachment-img" src="@item.FilePath" width="170" data-name="@item.FileName" />
+                                <a href="@item.FilePath" class="download-img-btn" download="@item.FileName">
+                                    <img src="/Content/Images/chat/download-img.svg" width="35" />
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </td>
+        </tr>
+    }*@
+}
+
+
+

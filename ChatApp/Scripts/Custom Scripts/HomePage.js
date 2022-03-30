@@ -1,12 +1,13 @@
 ﻿let commonBridge;
 let currentChatUserName = '';
-let currentGroupName = '';
-let currentGroupNumber = '';
+/*let currentGroupName = '';
+let currentGroupNumber = '';*/
 let currentChatUserId = '';
 let isConversationWindowOpen = false;
-
+let isGroup = false;
 let currentChatId;
-let currentGroupId;
+/*let currentGroupId;*/
+var attachmetList = [];
 
 /*********** Fn: Gets all active Chats on the left hand side ***********/
 function getAllUserChatAccounts() { 
@@ -25,7 +26,7 @@ function getAllUserChatAccounts() {
    
 }
 
-function getAllUserGroupAccounts() {
+/*function getAllUserGroupAccounts() {
     $("#custom-group-table-body").empty();
     $.ajax({
         url: window.location.origin + '/Home/GetGroupRooms',
@@ -39,7 +40,7 @@ function getAllUserGroupAccounts() {
         $(currentChatId).css('background-color', '#ffc107');
     }
    
-}
+}*/
 
 /*********** Fn: Gets the User Conversation Window's header ***********/
 function getUserConversationWindow() {
@@ -58,12 +59,11 @@ function getUserChat() {
 
     $.ajax({
         url: window.location.origin + '/Home/GetChatMessages',
-        type: 'GET',
-        dataType: 'json',
-        data: { receiverId: currentChatUserId},
+        type: 'GET',    
+        data: { receiverId: currentChatUserId, isGroup: isGroup },
         success: function (res) {
-            $("#custom-table-body2").empty();
-            for (i = 0; i < res.length; i++) {
+            $("#custom-table-body2").html(res);
+           /* for (i = 0; i < res.length; i++) {
                 if (res[i].SenderId == logedInUserId) {
                     $("#custom-table-body2").append(
                         `
@@ -90,7 +90,7 @@ function getUserChat() {
                 `
                     );
                 }
-            }
+            }*/
             $('#message-div').scrollTop($('#message-div')[0].scrollHeight);
         }
     });
@@ -214,28 +214,84 @@ function connectToUser(event) {
 
 function sendMessage() {
     let message = $('#messageBox').val();
+    attachmetList.forEach(function (item) {
 
-    
-    commonBridge.invoke('sendMessageTo', logedInUserName, currentChatUserName, message, logedInUserId, currentChatUserId).then(() => {
-        $('#messageBox').val('');
-        $("#custom-table-body2").append(
-            ` <tr>
+        $.ajax({
+            url: window.location.origin + '/Home/SaveImage',
+            type: 'POST',
+            dataType: 'json',
+            data: { base64String: item.filePath.split(",")[1], fileName: item.fileName },
+            success: function (res) {
+                if (res != "error") {
+                    commonBridge.invoke('saveAndSendAttachment', logedInUserName, currentChatUserName, res.FileName, res.FIlePath, item.size, item.fileType, logedInUserId, currentChatUserId).then(() => {
+                        var img = getTypeImage(item.fileType);
+                        if (img == "base64string") {
+                            $("#custom-table-body2").append(`<tr>
+                <td colspan="2" style="display: flex; justify-content: flex-end;">
+                   <div class="message-div sent-message">
+                            <div class="message-date-main-div">
+                                <div class="message-img-attachment-div">
+                                   <img class="attachment-img" src="`+ res.FIlePath + `" width="170" data-name="` + res.FileName + `" />
+                                   <a href="`+ res.FIlePath + `" class="download-img-btn" download="` + res.FileName + `">
+                                       <img src="/Content/Images/chat/download-img.svg" width="35" />
+                                   </a>
+                                </div>
+                            </div>
+                        </div>
+                </td>
+            </tr>`);
+
+                        }
+                        else {
+                            var isFileDownloadable = item.fileType == "pdf" ? 'class="open-pdf"' : 'download="' + item.fileName + '"'
+                            $("#custom-table-body2").append(` <div class="message-div sent-message">
+                    <div class="message-date-main-div">
+                        <div class="message-attachment-div">
+                            <a href="`+ res + `" ` + isFileDownloadable + ` >
+                                 <img src="`+ img + `" />
+                            </a>
+                            <div class="attachment-name-size-div">
+                                <span>`+ item.fileName + `</span>
+                                <span class="size">`+ item.size + `</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>`);
+
+                        }
+                        $('#message-div').scrollTop($('#message-div')[0].scrollHeight);
+                    }).catch((err) => console.log(err));
+
+                }
+            }
+        });
+
+
+    });
+    attachmetList = [];
+    if (message != "") {
+        commonBridge.invoke('sendMessageTo', logedInUserName, currentChatUserName, message, logedInUserId, currentChatUserId).then(() => {
+            $('#messageBox').val('');
+            $("#custom-table-body2").append(
+                ` <tr>
                 <td colspan="2" style="display: flex; justify-content: flex-end;">
                     <div class="custom-card-body">
                         <span class="message-text">${message}</span>
                     </div>
                 </td>
             </tr>`
-        );
-        $('#message-div').scrollTop($('#message-div')[0].scrollHeight);
-    }).catch( (err) => console.log(err));
+            );
+            $('#message-div').scrollTop($('#message-div')[0].scrollHeight);
+        }).catch((err) => console.log(err));
+    }
+    
 }
 
 function sendGroupMessage() {
     let message = $('#messageBox').val();
    
     
-    commonBridge.invoke('sendGroupMessage', logedInUserName, message, logedInUserId, currentGroupName, currentGroupNumber).then(() => {
+    commonBridge.invoke('sendGroupMessage', logedInUserName, message, logedInUserId, currentChatUserName, currentChatUserId).then(() => {
         $('#messageBox').val('');
         $("#custom-table-body2").append(
             ` <tr>
@@ -252,13 +308,13 @@ function sendGroupMessage() {
 
 function addUserToGroup() {
     var newUserId = $("#userNameForGroup").val();
-    commonBridge.invoke('addUserToGroup', logedInUserId, newUserId, currentGroupName, currentGroupNumber).then(() => {
+    commonBridge.invoke('addUserToGroup', logedInUserId, newUserId, currentChatUserName, currentChatUserId).then(() => {
         closeModal('addToGroupModal');
     }).catch((err) => console.log(err));
 }
 function removeUserFromGroup() {
     var newUserId = $("#userNameForGroup").val();
-    commonBridge.invoke('removeUserFromGroup', logedInUserId, currentGroupName, currentGroupNumber).then(() => {
+    commonBridge.invoke('removeUserFromGroup', logedInUserId, currentChatUserName, currentChatUserId).then(() => {
         $('#custom-card-header').addClass('hidden');
         $("#custom-table-body2").empty();
         $('#cardFooter').addClass('hidden');
@@ -320,15 +376,15 @@ function addGroup() {
             if (res) {
                 currentChatUserName = $("#connectToUserName option:selected").text();
                 currentChatUserId = $('#connectToUserName').val();
-                $('#currentConvoUserName')[0].innerText = currentGroupName;
+                $('#currentConvoUserName')[0].innerText = currentChatUserName;
                 $('#groupName').val('');
                 $("#loaderClass").addClass('hide');
                 closeModal('groupConnectionModal');
-                getAllUserGroupAccounts();
-                getUserGroup();
+                getAllUserChatAccounts();
+                getUserChat();
                 return;
             }
-            getAllUserGroupAccounts();
+            getAllUserChatAccounts();
             $('#groupName').val('')
             closeModal('groupConnectionModal');
             $("#loaderClass").addClass('hide');
@@ -361,20 +417,30 @@ function openCoversation(elem) {
     jquerElement.find('.unread-count').text('');
     currentChatUserName = jquerElement.find('.chat-user-name').text();
     currentChatUserId = elem.getAttribute('data-id');
+    isGroup = jquerElement.data("isgroup");
 
+    
     $('#custom-card-header').removeClass('hidden');
     $('#cardFooter').removeClass('hidden');
     $('#img-div').removeClass('hidden');
 
     isConversationWindowOpen = true;
-    $('#send-msg-btn').show();
-    $('.group-msg-btn').hide();
+
+    if (isGroup) {
+        $('#send-msg-btn').hide();
+        $('.group-msg-btn').show();
+    }
+    else {
+        $('#send-msg-btn').show();
+        $('.group-msg-btn').hide();
+    }
+    
     // Load all chat messages - call function for it!
     getUserChat();
 
 }
 
-function openGroupCoversation(elem) {
+/*function openGroupCoversation(elem) {
     currentGroupId = '#' + elem.id;
     var jquerElement = $(elem)
     $('.clickable').css('background-color', '#f44336');
@@ -382,8 +448,8 @@ function openGroupCoversation(elem) {
     $('#currentConvoUserName')[0].innerText = jquerElement.find('.group-name').text();
     //$('#currentConvoLabel')[0].innerText = 'online';
     jquerElement.find('.unread-count').text('');
-    currentGroupName = jquerElement.find('.group-name').text();
-    currentGroupNumber = elem.getAttribute('data-id');
+    currentChatUserName = jquerElement.find('.group-name').text();
+    currentChatId = elem.getAttribute('data-id');
 
     $('#custom-card-header').removeClass('hidden');
     $('#cardFooter').removeClass('hidden');
@@ -395,7 +461,7 @@ function openGroupCoversation(elem) {
     // Load all chat messages - call function for it!
     getUserGroup();
 
-}
+}*/
 
 
 function closeModal(modalId) {
@@ -406,7 +472,7 @@ function initiateSignalR() {
     var connection = $.hubConnection();
     connection.logging = true;
     connection.connectionSlow(function () {
-        console.log('We are currently experiencing difficulties with the connection.')
+        console.log('We are currently experiencing difficulties with the connection.');
     });
     connection.disconnected(function () {
         setTimeout(function () {
@@ -451,7 +517,7 @@ function initiateSignalR() {
     commonBridge.on('groupMessageReceived', (senderUserName, message, senderId, groupName, groupId) => {
         // We sent the message to server and received the response here.
 
-        if (isConversationWindowOpen && currentGroupName == groupName) {
+        if (isConversationWindowOpen && currentChatUserName == groupName && groupId == currentChatUserId) {
             $("#custom-table-body2").append(
                 `<tr>
                         <td colspan="2" style="display: flex; justify-content: flex-start;">
@@ -463,15 +529,101 @@ function initiateSignalR() {
             );
             $('#message-div').scrollTop($('#message-div')[0].scrollHeight);
         }
-        getAllUserGroupAccounts();
+        getAllUserChatAccounts();
 
     });
 
+    commonBridge.on('attachmentReceived', (senderUserName, receiverUserName, fileName, baseString, size, type, senderId, receiverId) => {
+        // We sent the message to server and received the response here.
+
+        if (logedInUserName == receiverUserName) {            
+            if (isConversationWindowOpen) {
+                $("#custom-table-body2").append(
+                    `<tr>
+                        <td colspan="2" style="display: flex; justify-content: flex-start;">
+                            <div class="message-div sent-message">
+                            <div class="message-date-main-div">
+                                <div class="message-img-attachment-div">
+                                   <img class="attachment-img" src="`+ baseString + `" width="170" data-name="` + fileName + `" />
+                                   <a href="`+ baseString + `" class="download-img-btn" download="` + fileName + `">
+                                       <img src="/Content/Images/chat/download-img.svg" width="35" />
+                                   </a>
+                                </div>
+                            </div>
+                        </div>
+                        </td>
+                    </tr>`
+                );
+                $('#message-div').scrollTop($('#message-div')[0].scrollHeight);
+            }
+            getAllUserChatAccounts();
+        }
+    });
+
     commonBridge.on('groupChangeMethod', () => {        
-        getAllUserGroupAccounts();
+        getAllUserChatAccounts();
     });
 
     connection.start().done().fail(function (error) {
         console.log('Invocation of start failed. Error:' + error)
     }).catch(err => console.error(err.toString())).then(function () { });
+}
+
+    $("#uploadBtn").change(function () {
+        var files = document.getElementById('uploadBtn').files;
+        if (files.length > 0) {
+            for (var i = 0; i < files.length; i++) {
+                getBase64(files[i]);
+            }
+        }
+    });
+function getTypeImage(name) {
+    var img = "";
+    if (name == "pdf") {
+        img = "/Content/Images/chat/file-pdf-solid.svg";
+    }
+    else if (name == "docx" || name == "doc") {
+        img = "/Content/Images/chat/file-word-solid.svg";
+    }
+    else if (name == "pptx" || name == "ppt") {
+        img = "/Content/Images/chat/file-powerpoint-solid.svg";
+    }
+    else if (name == "xlsx" || name == "csv" || name == "xls") {
+        img = "/Content/Images/chat/file-excel-solid.svg";
+    }
+    else if (name == "png" || name == "PNG" || name == "JPEG" || name == "jpeg" || name == "jpg" || name == "JPG") {
+        img = "base64string";
+    }
+    else {
+        img = "/Content/Images/chat/file-solid.svg";
+    }
+    return img;
+}
+function getExtension(filename) {
+    var parts = filename.split('.');
+    return parts[parts.length - 1];
+}
+function getExcatSize(_size) {
+    var fSExt = new Array('Bytes', 'KB', 'MB', 'GB'),
+        i = 0; while (_size > 900) { _size /= 1024; i++; }
+    return (Math.round(Math.round(_size * 100) / 100)) + ' ' + fSExt[i];
+}
+function getBase64(file) {
+    var reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = function () {
+        let attachment = {
+            id: attachmetList.length + 1,
+            fileType: getExtension(file.name),
+            filePath: reader.result,
+            fileName: file.name,
+            size: getExcatSize(file.size)
+        }
+
+        attachmetList.push(attachment);
+        console.log(attachmetList);
+    };
+    reader.onerror = function (error) {
+        console.log('Error: ', error);
+    };
 }

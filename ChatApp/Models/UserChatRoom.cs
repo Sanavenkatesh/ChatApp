@@ -16,9 +16,13 @@ namespace ChatApp.Models
     {
         public int Id { get; set; }
         public int ParentUserId { get; set; }
-        public int UserId { get; set; }
+        public Nullable<int> UserId { get; set; }
+        public Nullable<int> GroupId { get; set; }
         public string UserName { get; set; }
         public Nullable<System.DateTime> LastModified { get; set; }
         public Nullable<int> UnreadMessagesCount { get; set; }
+    
+        public virtual Group Group { get; set; }
+        public virtual User User { get; set; }
     }
 }

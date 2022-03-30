@@ -3,6 +3,7 @@ using ChatApp.Models;
 using System;
 using System.Collections.Generic;
 using System.Dynamic;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Web;
@@ -14,11 +15,11 @@ namespace Chat_Messenger.Controllers
     {
         public List<object> messageBox = new List<object>();
         private ChatDbEntities db = new ChatDbEntities();
-        
+
         public ActionResult HomePage()
         {
             ViewBag.Title = "Home Page";
-            ViewBag.UsersListToConnect =new SelectList(db.Users.ToList().Where(x => x.Id != (int)Session["logedInUserId"]), "Id", "UserName");
+            ViewBag.UsersListToConnect = new SelectList(db.Users.ToList().Where(x => x.Id != (int)Session["logedInUserId"]), "Id", "UserName");
             return View();
         }
 
@@ -69,14 +70,14 @@ namespace Chat_Messenger.Controllers
                 isOldChat.LastModified = DateTime.Now;
                 db.SaveChanges();
             }
-           
+
             return Json(true);
         }
 
         [HttpPost]
         public JsonResult AddGroup(string groupName)
         {
-            var groupData = db.Groups.Where(x=>x.GroupName == groupName).FirstOrDefault();
+            var groupData = db.Groups.Where(x => x.GroupName == groupName).FirstOrDefault();
             if (groupData == null)
             {
                 db.Groups.Add(new Group
@@ -87,16 +88,15 @@ namespace Chat_Messenger.Controllers
                 db.SaveChanges();
 
                 var data = db.Groups.Where(x => x.GroupName == groupName).FirstOrDefault();
-                db.GroupChatRooms.Add(new GroupChatRoom
+                db.UserChatRooms.Add(new UserChatRoom
                 {
                     GroupId = data.Id,
-                    UserId = data.CreatedBy,
-                    GroupName = groupName,
+                    ParentUserId = data.CreatedBy,
                     LastModified = DateTime.Now,
                     UnreadMessagesCount = 0
                 });
                 db.SaveChanges();
-            }            
+            }
 
             return Json(true);
         }
@@ -105,7 +105,7 @@ namespace Chat_Messenger.Controllers
         {
             try
             {
-                var chatRoomsData = db.UserChatRooms.OrderByDescending(x=>x.LastModified).ToList().Where(x => x.ParentUserId == (int)Session["logedInUserId"]);
+                var chatRoomsData = db.UserChatRooms.OrderByDescending(x => x.LastModified).ToList().Where(x => x.ParentUserId == (int)Session["logedInUserId"]);
                 return PartialView("_ChatRooms", chatRoomsData);
             }
             catch (Exception)
@@ -113,58 +113,108 @@ namespace Chat_Messenger.Controllers
                 return PartialView("_ChatRooms", new List<UserChatRoom>());
                 throw;
             }
-            
+
         }
-        
+
         public ActionResult GetGroupRooms()
         {
             try
             {
-                var chatRoomsData = db.GroupChatRooms.ToList().Where(x => x.UserId == (int)Session["logedInUserId"]);
+                var chatRoomsData = db.UserChatRooms.ToList().Where(x => x.UserId == (int)Session["logedInUserId"] && x.GroupId != null);
                 return PartialView("_GroupRooms", chatRoomsData);
             }
             catch (Exception)
             {
-                return PartialView("_GroupRooms", new List<GroupChatRoom>());
+                return PartialView("_GroupRooms", new List<UserChatRoom>());
                 throw;
             }
-            
+
         }
-        
-        public JsonResult GetChatMessages(int receiverId)
+
+        public ActionResult GetChatMessages(int receiverId, bool isGroup)
         {
             try
             {
-                var chatRoomData = db.UserChatRooms.ToList().Where(x => x.ParentUserId == (int)Session["logedInUserId"] && x.UserId == receiverId).FirstOrDefault();
-                
-                chatRoomData.UnreadMessagesCount = 0;
-                db.SaveChanges();
+                var chatRoomData = new UserChatRoom();
+                if (isGroup)
+                {
+                    chatRoomData = db.UserChatRooms.ToList().Where(x => x.ParentUserId == (int)Session["logedInUserId"] && x.GroupId == receiverId).FirstOrDefault();
+                }
+                else
+                {
+                    chatRoomData = db.UserChatRooms.ToList().Where(x => x.ParentUserId == (int)Session["logedInUserId"] && x.UserId == receiverId).FirstOrDefault();
+                }
+                if (chatRoomData != null)
+                {
+                    chatRoomData.UnreadMessagesCount = 0;
+                    db.SaveChanges();
+                }
 
-                var chatData = db.Messages.OrderBy(x=>x.SentOn).ToList().Where(x => (x.SenderId == (int)Session["logedInUserId"] || x.ReceiverId == (int)Session["logedInUserId"]) && (x.SenderId == receiverId || x.ReceiverId == receiverId));
-                return Json(chatData, JsonRequestBehavior.AllowGet);
+                var chatData = new List<Message>();
+                if (isGroup)
+                {
+                    chatData = db.Messages.OrderBy(x => x.SentOn).ToList().Where(x => x.GroupId == receiverId).ToList();
+
+                }
+                else
+                {
+                    chatData = db.Messages.OrderBy(x => x.SentOn).ToList().Where(x => (x.SenderId == (int)Session["logedInUserId"] || x.ReceiverId == (int)Session["logedInUserId"]) && (x.SenderId == receiverId || x.ReceiverId == receiverId)).ToList();
+
+                }
+                return PartialView("_MessagesView", chatData);
+
             }
             catch (Exception)
             {
-                return Json(new List<Message> { }, JsonRequestBehavior.AllowGet);
+                return PartialView("_MessagesView", new List<Message> { });
                 throw;
             }
-            
-        } 
-        
+
+        }
+
         public JsonResult GetGroupMessages(int groupId)
         {
             try
             {
-                var grupRoomData = db.GroupChatRooms.ToList().Where(x => x.UserId == (int)Session["logedInUserId"] && x.GroupId == groupId).FirstOrDefault();                
+                var grupRoomData = db.UserChatRooms.ToList().Where(x => x.ParentUserId == (int)Session["logedInUserId"] && x.GroupId == groupId).FirstOrDefault();
                 grupRoomData.UnreadMessagesCount = 0;
                 db.SaveChanges();
 
-                var chatData = db.Messages.OrderBy(x=>x.SentOn).ToList().Where(x => x.GroupId == groupId);
+                var chatData = db.Messages.OrderBy(x => x.SentOn).ToList().Where(x => x.GroupId == groupId);
                 return Json(chatData, JsonRequestBehavior.AllowGet);
             }
             catch (Exception)
             {
                 return Json(new List<Message> { }, JsonRequestBehavior.AllowGet);
+                throw;
+            }
+
+        }
+
+        [HttpPost]
+        public JsonResult SaveImage(string base64String, string fileName)
+        {
+            try
+            {
+                String path = Server.MapPath("~/Files");
+                var fileNameType = fileName.Split('.');
+                if (!Directory.Exists(path))
+                {
+                    Directory.CreateDirectory(path); 
+                }
+                var fileNameWithDate = fileNameType[0] + DateTime.Now.ToString("yyyyMMddHHmmssfff") + '.' + fileNameType[1];
+
+                string imgPath = Path.Combine(path, fileNameWithDate);
+
+                byte[] imageBytes = Convert.FromBase64String(base64String);
+
+                System.IO.File.WriteAllBytes(imgPath, imageBytes);                
+
+                return Json(new { FIlePath = "/Files/" + fileNameWithDate , FileName = fileNameWithDate }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json("error", JsonRequestBehavior.AllowGet);
                 throw;
             }
             

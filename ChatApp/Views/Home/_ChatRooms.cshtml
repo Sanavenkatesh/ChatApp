@@ -4,7 +4,7 @@
 }
 @foreach (var item in Model)
 {
-    <tr id="clickable-row-@count" class="clickable" onclick="openCoversation(this)" data-id="@item.UserId">
+    <tr id="clickable-row-@count" class="clickable" onclick="openCoversation(this)" data-isgroup="@(item.UserId != null ? "false" : "true")" data-id="@(item.UserId != null ? item.UserId : item.GroupId)">
         <td class="custom-row1">
             <div class="card-body dflex">
                 <div class="img-circle fake-img">
@@ -12,7 +12,7 @@
                 </div>
                 <div class="dflexcol card-details">
                     <div class="header-unread-count">
-                        <h3 id="@("user"+count)" class="custom-margin-block custom-header chat-user-name">@item.UserName</h3>
+                        <h3 id="@("user"+count)" class="custom-margin-block custom-header chat-user-name">@(item.UserId != null ? item.User.UserName : item.Group.GroupName)</h3>
                         <span class="unread-count">@(item.UnreadMessagesCount > 0 ? item.UnreadMessagesCount.ToString() : "")</span>
                     </div>
                     <label id="@("label"+count)" class="custom-label"></label>

@@ -5,17 +5,6 @@
     <!-- SSDL content -->
     <edmx:StorageModels>
     <Schema Namespace="ChatDbModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
-        <EntityType Name="GroupChatRooms">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
-          <Property Name="GroupId" Type="int" Nullable="false" />
-          <Property Name="UserId" Type="int" Nullable="false" />
-          <Property Name="GroupName" Type="varchar" MaxLength="100" />
-          <Property Name="LastModified" Type="datetime" />
-          <Property Name="UnreadMessagesCount" Type="int" />
-        </EntityType>
         <EntityType Name="Groups">
           <Key>
             <PropertyRef Name="Id" />
@@ -32,10 +21,14 @@
           <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="SenderId" Type="int" Nullable="false" />
           <Property Name="ReceiverId" Type="int" Nullable="false" />
-          <Property Name="TextMessage" Type="varchar" MaxLength="25" />
+          <Property Name="TextMessage" Type="varchar(max)" />
           <Property Name="SentOn" Type="datetime" />
           <Property Name="GroupId" Type="int" />
-          <Property Name="RoomId" Type="int" />
+          <Property Name="IsAttachment" Type="bit" />
+          <Property Name="FileType" Type="varchar" MaxLength="25" />
+          <Property Name="FilePath" Type="varchar(max)" />
+          <Property Name="FileName" Type="varchar(max)" />
+          <Property Name="FileSize" Type="varchar" MaxLength="25" />
         </EntityType>
         <EntityType Name="UserChatRooms">
           <Key>
@@ -43,7 +36,8 @@
           </Key>
           <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="ParentUserId" Type="int" Nullable="false" />
-          <Property Name="UserId" Type="int" Nullable="false" />
+          <Property Name="UserId" Type="int" />
+          <Property Name="GroupId" Type="int" />
           <Property Name="UserName" Type="varchar" MaxLength="25" />
           <Property Name="LastModified" Type="datetime" />
           <Property Name="UnreadMessagesCount" Type="int" />
@@ -57,35 +51,62 @@
           <Property Name="ConnectionId" Type="varchar" MaxLength="50" />
           <Property Name="Connected" Type="bit" />
         </EntityType>
+        <Association Name="FK__UserChatR__Group__656C112C">
+          <End Role="Groups" Type="Self.Groups" Multiplicity="0..1" />
+          <End Role="UserChatRooms" Type="Self.UserChatRooms" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Groups">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="UserChatRooms">
+              <PropertyRef Name="GroupId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__UserChatR__UserI__6477ECF3">
+          <End Role="Users" Type="Self.Users" Multiplicity="0..1" />
+          <End Role="UserChatRooms" Type="Self.UserChatRooms" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Users">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="UserChatRooms">
+              <PropertyRef Name="UserId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <EntityContainer Name="ChatDbModelStoreContainer">
-          <EntitySet Name="GroupChatRooms" EntityType="Self.GroupChatRooms" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Groups" EntityType="Self.Groups" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Messages" EntityType="Self.Messages" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="UserChatRooms" EntityType="Self.UserChatRooms" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Users" EntityType="Self.Users" Schema="dbo" store:Type="Tables" />
+          <AssociationSet Name="FK__UserChatR__Group__656C112C" Association="Self.FK__UserChatR__Group__656C112C">
+            <End Role="Groups" EntitySet="Groups" />
+            <End Role="UserChatRooms" EntitySet="UserChatRooms" />
+          </AssociationSet>
+          <AssociationSet Name="FK__UserChatR__UserI__6477ECF3" Association="Self.FK__UserChatR__UserI__6477ECF3">
+            <End Role="Users" EntitySet="Users" />
+            <End Role="UserChatRooms" EntitySet="UserChatRooms" />
+          </AssociationSet>
         </EntityContainer>
       </Schema></edmx:StorageModels>
     <!-- CSDL content -->
     <edmx:ConceptualModels>
       <Schema Namespace="ChatDbModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
         <EntityContainer Name="ChatDbEntities" annotation:LazyLoadingEnabled="true">
-          <EntitySet Name="GroupChatRooms" EntityType="ChatDbModel.GroupChatRoom" />
           <EntitySet Name="Groups" EntityType="ChatDbModel.Group" />
           <EntitySet Name="Messages" EntityType="ChatDbModel.Message" />
           <EntitySet Name="UserChatRooms" EntityType="ChatDbModel.UserChatRoom" />
           <EntitySet Name="Users" EntityType="ChatDbModel.User" />
+          <AssociationSet Name="FK__UserChatR__Group__656C112C" Association="ChatDbModel.FK__UserChatR__Group__656C112C">
+            <End Role="Group" EntitySet="Groups" />
+            <End Role="UserChatRoom" EntitySet="UserChatRooms" />
+          </AssociationSet>
+          <AssociationSet Name="FK__UserChatR__UserI__6477ECF3" Association="ChatDbModel.FK__UserChatR__UserI__6477ECF3">
+            <End Role="User" EntitySet="Users" />
+            <End Role="UserChatRoom" EntitySet="UserChatRooms" />
+          </AssociationSet>
         </EntityContainer>
-        <EntityType Name="GroupChatRoom">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-          <Property Name="GroupId" Type="Int32" Nullable="false" />
-          <Property Name="UserId" Type="Int32" Nullable="false" />
-          <Property Name="GroupName" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
-          <Property Name="LastModified" Type="DateTime" Precision="3" />
-          <Property Name="UnreadMessagesCount" Type="Int32" />
-        </EntityType>
         <EntityType Name="Group">
           <Key>
             <PropertyRef Name="Id" />
@@ -94,6 +115,7 @@
           <Property Name="GroupName" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
           <Property Name="CreatedBy" Type="Int32" Nullable="false" />
           <Property Name="LastModified" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="UserChatRooms" Relationship="ChatDbModel.FK__UserChatR__Group__656C112C" FromRole="Group" ToRole="UserChatRoom" />
         </EntityType>
         <EntityType Name="Message">
           <Key>
@@ -102,10 +124,14 @@
           <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="SenderId" Type="Int32" Nullable="false" />
           <Property Name="ReceiverId" Type="Int32" Nullable="false" />
-          <Property Name="TextMessage" Type="String" MaxLength="25" FixedLength="false" Unicode="false" />
+          <Property Name="TextMessage" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
           <Property Name="SentOn" Type="DateTime" Precision="3" />
           <Property Name="GroupId" Type="Int32" />
-          <Property Name="RoomId" Type="Int32" />
+          <Property Name="IsAttachment" Type="Boolean" />
+          <Property Name="FileType" Type="String" MaxLength="25" FixedLength="false" Unicode="false" />
+          <Property Name="FilePath" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
+          <Property Name="FileName" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
+          <Property Name="FileSize" Type="String" MaxLength="25" FixedLength="false" Unicode="false" />
         </EntityType>
         <EntityType Name="UserChatRoom">
           <Key>
@@ -113,10 +139,13 @@
           </Key>
           <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="ParentUserId" Type="Int32" Nullable="false" />
-          <Property Name="UserId" Type="Int32" Nullable="false" />
+          <Property Name="UserId" Type="Int32" />
+          <Property Name="GroupId" Type="Int32" />
           <Property Name="UserName" Type="String" MaxLength="25" FixedLength="false" Unicode="false" />
           <Property Name="LastModified" Type="DateTime" Precision="3" />
           <Property Name="UnreadMessagesCount" Type="Int32" />
+          <NavigationProperty Name="Group" Relationship="ChatDbModel.FK__UserChatR__Group__656C112C" FromRole="UserChatRoom" ToRole="Group" />
+          <NavigationProperty Name="User" Relationship="ChatDbModel.FK__UserChatR__UserI__6477ECF3" FromRole="UserChatRoom" ToRole="User" />
         </EntityType>
         <EntityType Name="User">
           <Key>
@@ -126,25 +155,38 @@
           <Property Name="UserName" Type="String" MaxLength="25" FixedLength="false" Unicode="false" />
           <Property Name="ConnectionId" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
           <Property Name="Connected" Type="Boolean" />
+          <NavigationProperty Name="UserChatRooms" Relationship="ChatDbModel.FK__UserChatR__UserI__6477ECF3" FromRole="User" ToRole="UserChatRoom" />
         </EntityType>
-      </Schema>
+        <Association Name="FK__UserChatR__Group__656C112C">
+          <End Type="ChatDbModel.Group" Role="Group" Multiplicity="0..1" />
+          <End Type="ChatDbModel.UserChatRoom" Role="UserChatRoom" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Group">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="UserChatRoom">
+              <PropertyRef Name="GroupId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__UserChatR__UserI__6477ECF3">
+          <End Type="ChatDbModel.User" Role="User" Multiplicity="0..1" />
+          <End Type="ChatDbModel.UserChatRoom" Role="UserChatRoom" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="User">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="UserChatRoom">
+              <PropertyRef Name="UserId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
     <edmx:Mappings>
       <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
         <EntityContainerMapping StorageEntityContainer="ChatDbModelStoreContainer" CdmEntityContainer="ChatDbEntities">
-          <EntitySetMapping Name="GroupChatRooms">
-            <EntityTypeMapping TypeName="ChatDbModel.GroupChatRoom">
-              <MappingFragment StoreEntitySet="GroupChatRooms">
-                <ScalarProperty Name="UnreadMessagesCount" ColumnName="UnreadMessagesCount" />
-                <ScalarProperty Name="LastModified" ColumnName="LastModified" />
-                <ScalarProperty Name="GroupName" ColumnName="GroupName" />
-                <ScalarProperty Name="UserId" ColumnName="UserId" />
-                <ScalarProperty Name="GroupId" ColumnName="GroupId" />
-                <ScalarProperty Name="Id" ColumnName="Id" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
           <EntitySetMapping Name="Groups">
             <EntityTypeMapping TypeName="ChatDbModel.Group">
               <MappingFragment StoreEntitySet="Groups">
@@ -158,7 +200,11 @@
           <EntitySetMapping Name="Messages">
             <EntityTypeMapping TypeName="ChatDbModel.Message">
               <MappingFragment StoreEntitySet="Messages">
-                <ScalarProperty Name="RoomId" ColumnName="RoomId" />
+                <ScalarProperty Name="FileSize" ColumnName="FileSize" />
+                <ScalarProperty Name="FileName" ColumnName="FileName" />
+                <ScalarProperty Name="FilePath" ColumnName="FilePath" />
+                <ScalarProperty Name="FileType" ColumnName="FileType" />
+                <ScalarProperty Name="IsAttachment" ColumnName="IsAttachment" />
                 <ScalarProperty Name="GroupId" ColumnName="GroupId" />
                 <ScalarProperty Name="SentOn" ColumnName="SentOn" />
                 <ScalarProperty Name="TextMessage" ColumnName="TextMessage" />
@@ -174,6 +220,7 @@
                 <ScalarProperty Name="UnreadMessagesCount" ColumnName="UnreadMessagesCount" />
                 <ScalarProperty Name="LastModified" ColumnName="LastModified" />
                 <ScalarProperty Name="UserName" ColumnName="UserName" />
+                <ScalarProperty Name="GroupId" ColumnName="GroupId" />
                 <ScalarProperty Name="UserId" ColumnName="UserId" />
                 <ScalarProperty Name="ParentUserId" ColumnName="ParentUserId" />
                 <ScalarProperty Name="Id" ColumnName="Id" />

@@ -169,9 +169,6 @@
     <Compile Include="Models\Group.cs">
       <DependentUpon>ChatDb.tt</DependentUpon>
     </Compile>
-    <Compile Include="Models\GroupChatRoom.cs">
-      <DependentUpon>ChatDb.tt</DependentUpon>
-    </Compile>
     <Compile Include="Models\Message.cs">
       <DependentUpon>ChatDb.tt</DependentUpon>
     </Compile>
@@ -283,6 +280,7 @@
     <Content Include="Views\Home\Login.cshtml" />
     <Content Include="Views\Home\_ChatRooms.cshtml" />
     <Content Include="Views\Home\_GroupRooms.cshtml" />
+    <Content Include="Views\Home\_MessagesView.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

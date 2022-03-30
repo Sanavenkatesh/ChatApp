@@ -20,6 +20,10 @@ namespace ChatApp.Models
         public string TextMessage { get; set; }
         public Nullable<System.DateTime> SentOn { get; set; }
         public Nullable<int> GroupId { get; set; }
-        public Nullable<int> RoomId { get; set; }
+        public Nullable<bool> IsAttachment { get; set; }
+        public string FileType { get; set; }
+        public string FilePath { get; set; }
+        public string FileName { get; set; }
+        public string FileSize { get; set; }
     }
 }

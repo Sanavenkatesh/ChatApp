@@ -14,9 +14,18 @@ namespace ChatApp.Models
     
     public partial class Group
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
+        public Group()
+        {
+            this.UserChatRooms = new HashSet<UserChatRoom>();
+        }
+    
         public int Id { get; set; }
         public string GroupName { get; set; }
         public int CreatedBy { get; set; }
         public Nullable<System.DateTime> LastModified { get; set; }
+    
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<UserChatRoom> UserChatRooms { get; set; }
     }
 }

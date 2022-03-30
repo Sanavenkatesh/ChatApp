@@ -25,7 +25,6 @@ namespace ChatApp.Models
             throw new UnintentionalCodeFirstException();
         }
     
-        public virtual DbSet<GroupChatRoom> GroupChatRooms { get; set; }
         public virtual DbSet<Group> Groups { get; set; }
         public virtual DbSet<Message> Messages { get; set; }
         public virtual DbSet<UserChatRoom> UserChatRooms { get; set; }

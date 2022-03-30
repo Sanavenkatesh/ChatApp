@@ -19,10 +19,10 @@ namespace Chat_Messenger.Hubs
                 db.SaveChanges();
 
 
-                var connectedRooms = db.GroupChatRooms.ToList().Where(x => x.UserId == user.Id);
+                var connectedRooms = db.UserChatRooms.ToList().Where(x => x.ParentUserId == user.Id && x.GroupId != null);
                 foreach (var item in connectedRooms)
                 {
-                    Groups.Add(Context.ConnectionId, item.GroupName);
+                    Groups.Add(Context.ConnectionId, item.Group.GroupName);
                 }
 
             }
@@ -49,7 +49,8 @@ namespace Chat_Messenger.Hubs
                     SenderId = int.Parse(senderId),
                     TextMessage = message,
                     ReceiverId = int.Parse(receiverId),
-                    SentOn = System.DateTime.Now,                    
+                    SentOn = DateTime.Now,  
+                    IsAttachment = false
                 });
                 db.SaveChanges();
 
@@ -93,13 +94,15 @@ namespace Chat_Messenger.Hubs
                     SenderId = int.Parse(senderId),
                     TextMessage = message,
                     SentOn = System.DateTime.Now,
-                    GroupId = int.Parse(groupId)
+                    GroupId = int.Parse(groupId),
+                    IsAttachment = false,
                 });
                 db.SaveChanges();
 
-                var gropuData = db.GroupChatRooms.ToList().Where(x => x.GroupId == int.Parse(groupId) && x.UserId != int.Parse(senderId));
+                var gropuData = db.UserChatRooms.ToList().Where(x => x.GroupId == int.Parse(groupId) && x.UserId != int.Parse(senderId));
                 foreach (var item in gropuData)
                 {
+                    item.LastModified = DateTime.Now;
                     item.UnreadMessagesCount = item.UnreadMessagesCount == null ? 0 : item.UnreadMessagesCount + 1;
                     db.SaveChanges();
                 }
@@ -110,19 +113,68 @@ namespace Chat_Messenger.Hubs
 
         }
 
+        public void saveAndSendAttachment(string senderUserName, string receiverUserName, string fileName, string baseString, string size, string type, string senderId, string receiverId)
+        {
+            var connectionId = "";
+            using (var db = new ChatDbEntities())
+            {
+                db.Messages.Add(new Message
+                {
+                    SenderId = int.Parse(senderId),
+                    FileName = fileName,
+                    FilePath = baseString,
+                    FileSize = size,
+                    FileType = type,
+                    ReceiverId = int.Parse(receiverId),
+                    SentOn = DateTime.Now,
+                    IsAttachment = true,
+                });
+                db.SaveChanges();
+
+                var receiverData = db.Users.Find(int.Parse(receiverId));
+                connectionId = receiverData.ConnectionId;
+
+                var userData = db.Users.Find(int.Parse(senderId));
+                var isOldChat = db.UserChatRooms.ToList().Where(x => x.ParentUserId == int.Parse(receiverId) && x.UserId == userData.Id).FirstOrDefault();
+                if (isOldChat == null)
+                {
+                    db.UserChatRooms.Add(new UserChatRoom
+                    {
+                        ParentUserId = int.Parse(receiverId),
+                        UserId = userData.Id,
+                        UserName = userData.UserName,
+                        LastModified = DateTime.Now,
+                        UnreadMessagesCount = 1
+                    });
+                    db.SaveChanges();
+                }
+                else
+                {
+                    isOldChat.LastModified = DateTime.Now;
+                    isOldChat.UnreadMessagesCount = isOldChat.UnreadMessagesCount + 1;
+                    db.SaveChanges();
+                }
+
+            }
+            if (connectionId != null)
+            {
+                Clients.Client(connectionId).attachmentReceived(senderUserName, receiverUserName, fileName, baseString, size, type, senderId, receiverId);
+            }
+
+        }
+
         public void addUserToGroup(string senderId, string newUserId, string groupName, string groupId)
         {
             var connectinId = "";
             using (var db = new ChatDbEntities())
             {
-                var isUserExist = db.GroupChatRooms.ToList().Where(r => r.UserId == int.Parse(newUserId) && r.GroupName == groupName && r.GroupId == int.Parse(groupId)).FirstOrDefault();
+                var isUserExist = db.UserChatRooms.ToList().Where(r => r.UserId == int.Parse(newUserId) && r.GroupId == int.Parse(groupId)).FirstOrDefault();
                 if(isUserExist == null)
                 {
-                    db.GroupChatRooms.Add(new GroupChatRoom
+                    db.UserChatRooms.Add(new UserChatRoom
                     {
                         GroupId = int.Parse(groupId),
-                        UserId = int.Parse(newUserId),
-                        GroupName = groupName,
+                        ParentUserId = int.Parse(newUserId),
                         LastModified = DateTime.Now,
                         UnreadMessagesCount = 0
                     });
@@ -143,10 +195,10 @@ namespace Chat_Messenger.Hubs
             var connectinId = "";
             using (var db = new ChatDbEntities())
             {
-                var isUserExist = db.GroupChatRooms.ToList().Where(r => r.UserId == int.Parse(existUserId) && r.GroupName == groupName && r.GroupId == int.Parse(groupId)).FirstOrDefault();
+                var isUserExist = db.UserChatRooms.ToList().Where(r => r.UserId == int.Parse(existUserId) && r.GroupId == int.Parse(groupId)).FirstOrDefault();
                 if (isUserExist != null)
                 {
-                    db.GroupChatRooms.Remove(isUserExist);
+                    db.UserChatRooms.Remove(isUserExist);
                     db.SaveChanges();
                 }
                 connectinId = db.Users.Find(int.Parse(existUserId)).ConnectionId;

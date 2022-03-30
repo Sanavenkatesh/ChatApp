@@ -1,10 +1,3 @@
-CREATE TABLE GroupChatRooms (
-    Id int IDENTITY(1,1) NOT NULL PRIMARY KEY,
-	GroupId int not null,
-	UserId int not null,
-    GroupName varchar(100),
-	LastModified DateTime
-);
  CREATE TABLE Groups (
     Id int IDENTITY(1,1) NOT NULL PRIMARY KEY,	
     GroupName varchar(100),
@@ -18,28 +11,28 @@ CREATE TABLE Messages (
 	ReceiverId int not null,
     TextMessage varchar(max),
 	SentOn DateTime,
-GroupId int
-
+	GroupId int,
+	IsAttachment bit,
+	FileType varchar(25),
+	FilePath varchar(max),
+	FileName varchar(max),
+	FileSize varchar(25)
 );
 
   CREATE TABLE Users (
     Id int IDENTITY(1,1) NOT NULL PRIMARY KEY,
     UserName varchar(25),
-    ConnectionId varchar(50)    
+    ConnectionId varchar(50),
+	Connected bit
 );
+
 CREATE TABLE UserChatRooms (
     Id int IDENTITY(1,1) NOT NULL PRIMARY KEY,
-	ParentUserId int not null,
 	UserId int not null,
+	ContactUserId int FOREIGN KEY REFERENCES Users(Id),
+	GroupId int FOREIGN KEY REFERENCES Groups(Id),
     UserName varchar(25),
-	LastModified DateTime
+	LastModified DateTime,
+	UnreadMessagesCount int
 );
 
-alter table Users
-  add Connected bit;
-
-  alter table UserChatRooms
-  add UnreadMessagesCount int;
-
-  alter table GroupChatRooms
-  add UnreadMessagesCount int;

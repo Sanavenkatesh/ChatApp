@@ -57,6 +57,7 @@
             <div id="cardFooter" class="card-footer hidden" style="height: 12%;">
                 <div class="container-fluid p-15" style="height: 100%;">
                     <div class="dflex custom-inputdiv">
+                        <input type="file" id="uploadBtn" />
                         <textarea rows="2" id="messageBox" title="Enter Message" placeholder="Type a message" type="text" class="custom-inputtextarea"></textarea>
                         <button type="button" id="send-msg-btn" title="Send Message" class="custom-button"
                                 onclick="sendMessage()">
@@ -170,8 +171,7 @@
     $("#loaderClass").addClass('hide');
 
     $(document).ready(() => {
-        getAllUserChatAccounts();
-        getAllUserGroupAccounts();
+        getAllUserChatAccounts();       
         initiateSignalR();
         addEventListeners();
     });
