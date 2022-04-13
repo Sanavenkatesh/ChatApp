@@ -28,7 +28,7 @@ namespace Chat_Messenger.Hubs
             }
             return base.OnConnected();
         }
-
+       
         public override Task OnDisconnected(bool stopCalled)
         {
             using (var db = new ChatDbEntities())
@@ -99,7 +99,7 @@ namespace Chat_Messenger.Hubs
                 });
                 db.SaveChanges();
 
-                var gropuData = db.UserChatRooms.ToList().Where(x => x.GroupId == int.Parse(groupId) && x.UserId != int.Parse(senderId));
+                var gropuData = db.UserChatRooms.ToList().Where(x => x.GroupId == int.Parse(groupId) && x.ParentUserId != int.Parse(senderId));
                 foreach (var item in gropuData)
                 {
                     item.LastModified = DateTime.Now;
@@ -168,7 +168,7 @@ namespace Chat_Messenger.Hubs
             var connectinId = "";
             using (var db = new ChatDbEntities())
             {
-                var isUserExist = db.UserChatRooms.ToList().Where(r => r.UserId == int.Parse(newUserId) && r.GroupId == int.Parse(groupId)).FirstOrDefault();
+                var isUserExist = db.UserChatRooms.ToList().Where(r => r.ParentUserId == int.Parse(newUserId) && r.GroupId == int.Parse(groupId)).FirstOrDefault();
                 if(isUserExist == null)
                 {
                     db.UserChatRooms.Add(new UserChatRoom
@@ -179,14 +179,16 @@ namespace Chat_Messenger.Hubs
                         UnreadMessagesCount = 0
                     });
                     db.SaveChanges();
+                    connectinId = db.Users.Find(int.Parse(newUserId)).ConnectionId;
+                    if (connectinId != null)
+                    {
+                        Groups.Add(connectinId, groupName);
+                        Clients.Client(connectinId).groupChangeMethod();
+                    }
                 }
-                connectinId = db.Users.Find(int.Parse(newUserId)).ConnectionId;
+                
             }
-            if(connectinId != null)
-            {
-                Groups.Add(connectinId, groupName);
-                Clients.Client(connectinId).groupChangeMethod();
-            }
+            
 
         }
 

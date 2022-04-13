@@ -223,7 +223,8 @@ function sendMessage() {
             data: { base64String: item.filePath.split(",")[1], fileName: item.fileName },
             success: function (res) {
                 if (res != "error") {
-                    commonBridge.invoke('saveAndSendAttachment', logedInUserName, currentChatUserName, res.FileName, res.FIlePath, item.size, item.fileType, logedInUserId, currentChatUserId).then(() => {
+
+                    commonBridge.invoke('saveAndSendAttachment', logedInUserName, currentChatUserName, res.FileName, item.filePath, item.size, item.fileType, logedInUserId, currentChatUserId).then(() => {
                         var img = getTypeImage(item.fileType);
                         if (img == "base64string") {
                             $("#custom-table-body2").append(`<tr>
@@ -231,8 +232,8 @@ function sendMessage() {
                    <div class="message-div sent-message">
                             <div class="message-date-main-div">
                                 <div class="message-img-attachment-div">
-                                   <img class="attachment-img" src="`+ res.FIlePath + `" width="170" data-name="` + res.FileName + `" />
-                                   <a href="`+ res.FIlePath + `" class="download-img-btn" download="` + res.FileName + `">
+                                   <img class="attachment-img" src="`+ item.filePath + `" width="170" data-name="` + res.FileName + `" />
+                                   <a href="`+ item.filePath + `" class="download-img-btn" download="` + res.FileName + `">
                                        <img src="/Content/Images/chat/download-img.svg" width="35" />
                                    </a>
                                 </div>
